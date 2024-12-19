@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Your Face Shape with Priggla</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      touch-action: pan-y;
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100vw;
+      overflow: hidden;
+      font-family: Helvetica, Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center; /* Center content vertically */
+    }
+
+    .cover {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .cover img {
+      width: 100%;
+      max-width: 300px;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      margin-bottom: 20px;
+    }
+
+    .cover h1 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #000;
+      /* Added styles for bold and blue color */
+      font-weight: bold;
+      color: #0048FF;
+    }
+
+    .cover .cta-button {
+      padding: 12px 20px;
+      background-color: #0048FF; /* Blue background for the button */
+      color: #fff; /* White text for the button */
+      border: none;
+      cursor: pointer;
+      border-radius: 60px;
+      width: 100%;
+      max-width: 250px;
+      font-size: 16px;
+    }
+
+    .cover .cta-button:hover {
+      background-color: #0042E6;
+    }
+
+    .face-shape-container {
+      display: none; /* Initially hidden */
+      width: 100%;
+      max-width: 400px;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      flex-grow: 1;
+      justify-content: space-between;
+      padding: 10px;
+    }
+
+    /* ... (rest of your existing styles) */
+    #videoContainer {
+      width: 100%;
+      max-width: 300px;
+      aspect-ratio: 1 / 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #videoElement {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    .face-shape-outline {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .directional-image {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 20;
+      opacity: 0.8;
+    }
+
+    .face-shape-question {
+      font-size: 14px;
+      color: #000;
+    }
+
+    .navigation-buttons {
+      display: none; /* Initially hidden */
+justify-content: space-between;
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      max-width: 300px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .navigation-buttons button {
+      flex: 1;
+      padding: 8px;
+      margin: 5px 0;
+      cursor: pointer;
+      border-radius: 30px;
+      border: 1px solid #0048FF;
+      background-color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      white-space: nowrap;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      color: #0048FF;
+      width: 100%;
+      max-width: 150px;
+    }
+
+    .navigation-buttons button:hover {
+      background-color: #f0f0f0;
+    }
+
+    .navigation-buttons button svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+      margin: 0 3px;
+    }
+
+    @media (max-width: 400px) {
+      .navigation-buttons {
+        flex-direction: column;
+        bottom: 5px;
+        max-width: 95%;
+        align-items: center;
+      }
+    }
+
+    .face-shape-container .cta-button {
+      background-color: #0048FF;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 60px;
+      padding: 12px 20px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 250px;
+      margin-top: 10px; /* Added margin for spacing */
+    }
+
+    .face-shape-container .cta-button:hover {
+      background-color: #0042E6;
+    }
+
+    #closeTool {
+      background-color: white;
+      color: #0048FF;
+      border: 1px solid #0048FF;
+      border-radius: 30px;
+      margin-top: 10px; /* Added margin for spacing */
+      padding: 5px; /* Added padding all around */
+    }
+
+    .main-heading {
+      font-size: 24px;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #0048FF;
+    }
+
+    .sub-heading {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .nav-button-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 300px;
+      margin-top: 10px;
+    }
+
+    .nav-button-row button {
+      width: 48%;
+      max-width: 140px;
+      background-color: white;
+      color: #0048FF;
+      border: 1px solid #0048FF;
+      border-radius: 30px;
+      display: inline-flex; /* Use inline-flex for alignment */
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px; /* Adjust padding as needed */
+      font-size: 14px; /* Adjust font size */
+    }
+        .nav-button-row button svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 5px; /* Space between icon and text */
+        }
+  </style>
+</head>
+
+<body>
+  <div class="cover" id="cover">
+    <h1 class="main-heading">Face Shape Finder Tool</h1>
+    <h1 class="sub-heading">Find Your Face Shape with Priggla</h1>
+    <img src="https://static.wixstatic.com/media/62402c_d73f976222634da59ac28cdabf39cffe~mv2.jpg"
+      alt="Face Shape Example">
+    <button class="cta-button" id="startTool">📷 Click Here To Find Your Face Shape</button>
+  </div>
+
+  <div class="face-shape-container" id="faceShapeContainer">
+    <h1 class="main-heading">Face Shape Finder Tool</h1>
+    <h1 class="sub-heading">Find Your Face Shape with Priggla</h1>
+    <div class="face-shape-name" id="faceShapeName">Oval Face Shape</div>
+    <div id="videoContainer">
+      <video id="videoElement" autoplay playsinline></video>
+      <img src="https://static.wixstatic.com/media/62402c_57998146ab8b43e79caa82a944f262e4~mv2.png"
+        alt="Oval Face Shape Outline" class="face-shape-outline" id="faceShapeImage">
+      <img src="" alt="Directional Guide for Oval Face Shape" class="directional-image" id="directionalImage">
+    </div>
+    <div class="face-shape-question" id="faceShapeQuestion">Is Oval Face Shape your face shape?</div>
+    <button class="cta-button" id="ctaButton">See perfect glasses frames for Oval Face Shape→</button>
+    <div class="nav-button-row">
+      <button onclick="navigateFaceShape(-1)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#0048FF">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Previous
+      </button>
+      <button onclick="navigateFaceShape(1)">
+        Next
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#0048FF">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+    <button id="closeTool">Close Tool</button>
+  </div>
+
+  <script>
+    const faceShapeContainer = document.getElementById('faceShapeContainer');
+    const cover = document.getElementById('cover');
+    const startToolButton = document.getElementById('startTool');
+    const closeToolButton = document.getElementById('closeTool');
+
+    startToolButton.addEventListener('click', () => {
+      cover.style.display = 'none';
+      faceShapeContainer.style.display = 'flex';
+      startCamera();
+    });
+
+    closeToolButton.addEventListener('click', () => {
+      faceShapeContainer.style.display = 'none';
+      cover.style.display = 'flex';
+      const videoElement = document.getElementById('videoElement');
+      if (videoElement.srcObject) {
+        const stream = videoElement.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        videoElement.srcObject = null;
+      }
+    });
+
+    const faceShapes = [
+        { name: "Oval Face Shape", image: "https://static.wixstatic.com/media/62402c_07e969d6baca452dbe4ce5a2a72a1b9b~mv2.png" },
+        { name: "Round Face Shape", image: "https://static.wixstatic.com/media/62402c_a31c277c32d94505a10867e73325ab00~mv2.png" },
+        { name: "Square Face Shape", image: "https://static.wixstatic.com/media/62402c_782382f87f0b43d7a7dbe36f3d3ae86a~mv2.png" },
+        { name: "Rectangle Face Shape", image: "https://static.wixstatic.com/media/62402c_e0f839e3c62e4f589f195e8274a367c3~mv2.png" },
+        { name: "Heart Face Shape", image: "https://static.wixstatic.com/media/62402c_2efa998dc33a43eeb881662f7b54497d~mv2.png" },
+        { name: "Diamond Face Shape", image: "https://static.wixstatic.com/media/62402c_5d0d313bd53b433ea494fd0f8015df59~mv2.png" },
+        { name: "Triangle Face Shape", image: "https://static.wixstatic.com/media/62402c_a81f7efa1fa74e8094601e2ca4b70e0d~mv2.png" },
+        { name: "Pear Face Shape", image: "https://static.wixstatic.com/media/62402c_b7ca044dbe224f28a5c4fb07c3821425~mv2.png" },
+        { name: "Oblong Face Shape", image: "https://static.wixstatic.com/media/62402c_8c35faf52154476381ac2a4321e41b3c~mv2.png" },
+        { name: "Round-Oval Face Shape", image: "https://static.wixstatic.com/media/62402c_9c0a44a9d2d64b98b3dfcb179e7aba88~mv2.png" },
+        { name: "Oval-Rectangular Face Shape", image: "https://static.wixstatic.com/media/62402c_06e59cee9cb5452f9b49d3d33b5aea17~mv2.png" },
+        { name: "Square-Round Face Shape", image: "https://static.wixstatic.com/media/62402c_c0d2047e32924e0aa2c21990aa4a2497~mv2.png" },
+        { name: "Heart-Diamond Face Shape", image: "https://static.wixstatic.com/media/62402c_b952b2b899af4a91b359a87043d68551~mv2.png" }
+    ];
+
+    const directionalImages = [
+        { name: "Oval Face Shape", image: "https://static.wixstatic.com/media/62402c_17f64501dd7a4afa9fbdf957119d5b77~mv2.jpg" },
+        { name: "Round Face Shape", image: "https://static.wixstatic.com/media/62402c_751ec29588b04414bb82b03cefb38dd6~mv2.jpg" },
+        { name: "Square Face Shape", image: "https://static.wixstatic.com/media/62402c_248ee973be5c434383ed44f5d991647a~mv2.jpg" },
+        { name: "Rectangle Face Shape", image: "https://static.wixstatic.com/media/62402c_828e508a1a014ca38149468c8fa12e18~mv2.jpg" },
+        { name: "Heart Face Shape", image: "https://static.wixstatic.com/media/62402c_4a4dec598c4147b4a3d8be9592d6f8ab~mv2.jpg" },
+        { name: "Diamond Face Shape", image: "https://static.wixstatic.com/media/62402c_7ac49dee3c3748d6b8f63be02a1d0d46~mv2.jpg" },
+        { name: "Triangle Face Shape", image: "https://static.wixstatic.com/media/62402c_7565219c420a441baa1d52c5fc3006a4~mv2.jpg" },
+        { name: "Pear Face Shape", image: "https://static.wixstatic.com/media/62402c_5be68f938a8d4904b3bf6fedcd551680~mv2.jpg" },
+        { name: "Oblong Face Shape", image: "https://static.wixstatic.com/media/62402c_6fa8c73b184147438368fb8c1a645a40~mv2.jpg" },
+        { name: "Round-Oval Face Shape", image: "https://static.wixstatic.com/media/62402c_d9bf03aabd6e4dce804751296232dc8e~mv2.jpg" },
+        { name: "Oval-Rectangular Face Shape", image: "https://static.wixstatic.com/media/62402c_2db29f72013045be9fb83278267dfdc7~mv2.jpg" },
+        { name: "Square-Round Face Shape", image: "https://static.wixstatic.com/media/62402c_b5cd11795180483ab0e1b519bfe7cb8e~mv2.jpg" },
+        { name: "Heart-Diamond Face Shape", image: "https://static.wixstatic.com/media/62402c_f4eea39d893e42afab2f4903bca676ca~mv2.jpg" }
+    ];
+
+    let currentIndex = 0;
+    let startX;
+
+    function navigateFaceShape(direction) {
+      currentIndex += direction;
+      if (currentIndex < 0) currentIndex = faceShapes.length - 1;
+      if (currentIndex >= faceShapes.length) currentIndex = 0;
+
+      updateFaceShapeDisplay();
+    }
+
+    function updateFaceShapeDisplay() {
+      const currentShape = faceShapes[currentIndex];
+      const currentDirectionalImage = directionalImages.find(item => item.name === currentShape.name);
+
+      document.getElementById("faceShapeName").textContent = currentShape.name;
+      document.getElementById("faceShapeImage").src = currentShape.image;
+      document.getElementById("faceShapeQuestion").textContent = `Is ${currentShape.name} your face shape?`;
+      document.getElementById("ctaButton").textContent = `See perfect glasses frames for ${currentShape.name}→`;
+
+      if (currentDirectionalImage) {
+        document.getElementById("directionalImage").src = currentDirectionalImage.image;
+      } else {
+        document.getElementById("directionalImage").src = "";
+      }
+    }
+
+    const faceShapeContainerElement = document.getElementById('faceShapeContainer');
+
+    faceShapeContainerElement.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    faceShapeContainerElement.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].clientX;
+      const diffX = startX - endX;
+
+      if (Math.abs(diffX) > 50) {
+        if (diffX > 0) {
+          navigateFaceShape(1);
+        } else {
+          navigateFaceShape(-1);
+        }
+      }
+    });
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        const videoElement = document.getElementById("videoElement");
+        videoElement.srcObject = stream;
+      } catch (error) {
+        console.error("Error accessing camera: ", error);
+        alert("Unable to access the camera. Please check your device settings.");
+      }
+    }
+
+    window.onload = () => {
+      navigateFaceShape(0);
+    };
+  </script>
+</body>
+
+</html>
